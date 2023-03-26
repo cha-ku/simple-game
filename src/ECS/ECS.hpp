@@ -144,11 +144,11 @@ class Registry {
 private:
    mutable size_t numEntities = 0; 
    // each Pool contains the data for certain component type
-   mutable std::vector<IPool*> componentPools;
+   mutable std::vector<std::unique_ptr<IPool>> componentPools;
    // tracks which component is turned 'on' (i.e. Signature) per entity.
    mutable std::vector<Signature> entityComponentSignatures;
    // track each system type with map
-   std::unordered_map<std::type_index, System*> systems;
+   std::unordered_map<std::type_index, std::unique_ptr<System>> systems;
    
    // only add/delete entities at the end of game loop
    mutable std::set<Entity> entitiesToBeAdded;
@@ -227,8 +227,7 @@ inline bool const Registry::HasComponent(Entity &entity) {
 
 template<typename TSystem, typename... TArgs>
 inline void Registry::AddSystem(TArgs&& ...args) {
-    TSystem* newSystem(new TSystem(std::forward<TArgs>(args)...));
-    systems[std::type_index(typeid(TSystem))] = newSystem;
+    systems[std::type_index(typeid(TSystem))] = std::make_unique<TSystem>(TSystem(std::forward<TArgs>(args)...));
 };
 
 template<typename TSystem>
@@ -245,7 +244,7 @@ inline bool const Registry::HasSystem() {
 
 template<typename TSystem>
 inline const TSystem& Registry::GetSystem() {
-    return *systems[std::type_index(typeid(TSystem))];
+    return std::ref(*systems[std::type_index(typeid(TSystem))]);
 };
 
 #endif
