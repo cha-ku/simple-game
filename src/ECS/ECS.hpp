@@ -7,6 +7,7 @@
 #include <unordered_map>
 #include <set>
 #include <typeindex>
+#include <memory>
 
 
 const uint8_t MAX_COMPONENTS = 32;
@@ -20,7 +21,7 @@ template <typename T>
 class Component : public IComponent {
 private:
     static int GetId() {
-        static auto id = nextId++;
+        static const auto id = nextId++;
         return id;
     }
 };
@@ -30,108 +31,221 @@ private:
     int id;
 
 public:
-    Entity(int id) : id(id) {};
+    // // Rule of five (https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#Rc-five)
+    Entity(int id) : id{id} {}
+    Entity(const Entity& entity) : id{entity.id} {}
+    Entity& operator=(const Entity& entity) = default;
+    Entity(const Entity&& entity) : Entity(entity) {}
+    Entity& operator=(Entity&& entity) = default;
+
     int GetId() const;
-    bool const operator==(Entity const& other) { return id == other.id; }
-    bool const operator!=(Entity const& other) { return id != other.id; }
+    
+    bool operator==(const Entity& other) const { return id == other.id; }
+    bool operator!=(const Entity& other) const { return id != other.id; }
+    bool operator<(const Entity& other) const { return id < other.id; }
+    bool operator>(const Entity& other) const { return id > other.id; }
 };
 
 // System processes specific entities
 class System {
-
 private:
    Signature componentSignature;
    std::vector<Entity> entities; 
 
 public:
-   System() = default;
-   ~System() = default; 
-
-   void AddEntity(Entity& entity);
+   void AddEntity(const Entity& entity);
    void RemoveEntity(Entity& entity);
    std::vector<Entity> GetEntities() const;
    Signature const& GetComponentSignature() const;
 
-   //Valid entities must have atleast one component
+   // Valid entities must have atleast one component
    template <typename T> void RequireComponent();
 };
 
 // IPool is pure virtual base class
 class IPool {
-    public:
-    virtual ~IPool() {};
+public:
+    virtual ~IPool() {}; // virtual destructor
+    IPool(const IPool&) = default; // copy constructor
+    IPool& operator=(const IPool&) = default; // copy assignment 
+    IPool(IPool&&) = default; // move constructor
+    IPool& operator=(IPool&&) = default; // move assignment operator
 };
 
 // Pool is a container to store components
 template <typename T>
 class Pool : public IPool {
 private:
-   std::vector<T> data;
+   mutable std::vector<T> data;
 
 public:
-    Pool(size_t size = 64) {
-        data.resize(size);
-    }
+    // Rule of five (https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#Rc-five)
+    Pool() = delete; // must not be default constructed without user-specified size
 
-    ~Pool = default;
+    Pool(const size_t& size) {
+        data.reserve(size);
+    };
 
+    Pool(Pool& other) : data{other.data} {}
+
+    Pool& operator=(Pool& other) = default;
+
+    Pool(Pool&& other) : Pool(other) {}
+
+    Pool& operator=(Pool&& other) = default;
+
+    ~Pool() = default;
+    
     auto IsEmpty() const {
         return data.empty();
     }
 
-    auto GetSize() const {
+    /// @brief Get size of underlying storage
+    /// @return size_t
+    auto Size() const -> size_t {
         return data.size();
     }
 
-    auto Resize(size_t n) const {
-        data.resize(n);
+    /// @brief vector::reserve if n is greater than underyling container size, vector::resize otherwise
+    /// @param n 
+    /// @return void
+    auto Resize(size_t n) const -> void {
+        if (n >= data.size()) {
+            data.reserve(n);
+        }
+        else {
+            data.resize(n);
+        }
     }
 
-    auto Clear() {
+    auto Clear() -> void {
         data.clear();
     }
 
-    auto Add(T& object) {
+    auto Add(T& object) -> void {
         data.emplace_back(object);
     }
 
-    auto Set(size_t index, T& object) {
+    auto Set(size_t index, T& object) -> void {
         data[index] = object;
     }
 
-    T& Get(size_t index) {
+    auto Get(size_t index) -> T& {
         return static_cast<T&>(data[index]);
     }
 
     T& operator [](size_t index) {
-        return data[index];
+        return data[static_cast<int>(index)];
     }
 };
 
 // registry class is responsible for creating, removing and tracking entities, components and systems
 class Registry {
 private:
-   size_t numEntities = 0; 
+   mutable size_t numEntities = 0; 
    // each Pool contains the data for certain component type
-   std::vector<IPool*> componentPools;
+   mutable std::vector<IPool*> componentPools;
    // tracks which component is turned 'on' (i.e. Signature) per entity.
-   std::vector<Signature> entityComponentSignatures;
+   mutable std::vector<Signature> entityComponentSignatures;
    // track each system type with map
    std::unordered_map<std::type_index, System*> systems;
    
-   // Only add/delete entities at the end of game loop
-   std::set<Entity> entitiesToBeAdded;
-   std::set<Entity> entitiesToBeKilled;
+   // only add/delete entities at the end of game loop
+   mutable std::set<Entity> entitiesToBeAdded;
+   mutable std::set<Entity> entitiesToBeKilled;
 
 public:
-    Registry() = default;
-    Entity& CreateEntity();
+    // Entity management
+    Entity CreateEntity();
+
+    // Component management
+    template<typename TComponent, typename ...TArgs> void AddComponent(Entity& entity, TArgs&& ...args);
+    template<typename TComponent> void RemoveComponent(Entity& entity);
+    template<typename TComponent> bool const HasComponent(Entity& entity);
+
+    // System management
+    template<typename TSystem, typename ...TArgs> void AddSystem(TArgs&& ...args);
+    template<typename TSystem> void RemoveSystem();
+    template<typename TSystem> bool const HasSystem();
+    template<typename TSystem> const TSystem& GetSystem();
+
+    // If an entity's component signature matches to that of a system's required components,
+    // add that entity to the system
+    void AddEntityToSystems(const Entity& entity);
+    void Update();
 };
 
-template <typename TComponent>
+template<typename TComponent>
 void System::RequireComponent() {
     auto componentId = Component<TComponent>::GetId();
     componentSignature.set(componentId);
-}
+};
+
+template<typename TComponent, typename... TArgs>
+inline void Registry::AddComponent(Entity &entity, TArgs &&...args) {
+    auto const componentId = Component<TComponent>::GetId();
+    auto const entityId = entity.GetId();
+
+    // resize if component ID is greater than what componentPools can hold
+    if (componentId >= static_cast<decltype(componentId)>(componentPools.size())) {
+        componentPools.reserve(componentId * 2);
+    }
+
+    // create componentPool for a type if it doesn't exist
+    if (!componentPools[componentId]) {
+        componentPools[componentId] = std::unique_ptr<TComponent>(new Pool<TComponent>());
+    }
+
+    // componentId is guaranteed to exist - fetch componentPool for that componentId
+    std::unique_ptr<Pool<TComponent>> componentPool = Pool<TComponent>(componentPools[componentId]);
+
+    if (entityId >= componentPool->Size()) {
+        componentPool->Resize(numEntities * 2);
+    }
+
+    TComponent newComponent(std::forward<TArgs>(args)...);
+
+    componentPool->Set(entityId, newComponent);
+    entityComponentSignatures[entityId].set(componentId);
+};
+
+template<typename TComponent>
+inline void Registry::RemoveComponent(Entity &entity) {
+    auto const componentId = Component<TComponent>::GetId();
+    auto const entityId = entity.GetId();
+
+    entityComponentSignatures[entityId].set(componentId, false);
+};
+
+template<typename TComponent>
+inline bool const Registry::HasComponent(Entity &entity) { 
+    auto const componentId = Component<TComponent>::GetId();
+    auto const entityId = entity.GetId();
+
+    return entityComponentSignatures[entityId].test(componentId);
+};
+
+template<typename TSystem, typename... TArgs>
+inline void Registry::AddSystem(TArgs&& ...args) {
+    TSystem* newSystem(new TSystem(std::forward<TArgs>(args)...));
+    systems[std::type_index(typeid(TSystem))] = newSystem;
+};
+
+template<typename TSystem>
+inline void Registry::RemoveSystem(){
+    std::erase_if(systems, [](const auto& item) {
+        return item.first == std::type_index(typeid(TSystem));
+    });
+};
+
+template<typename TSystem>
+inline bool const Registry::HasSystem() {
+    return systems.count(std::type_index(typeid(TSystem)));
+};
+
+template<typename TSystem>
+inline const TSystem& Registry::GetSystem() {
+    return *systems[std::type_index(typeid(TSystem))];
+};
 
 #endif

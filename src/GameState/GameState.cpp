@@ -64,8 +64,11 @@ void GameState::Render() {
 }
 
 void GameState::Setup() {
-    playerPos = glm::vec2(10.0, 20.0);
-    playerVel = glm::vec2(100, 5);
+    //playerPos = glm::vec2(10.0, 20.0);
+    //playerVel = glm::vec2(100, 5);
+    auto t = registry->CreateEntity();
+    auto r = registry->CreateEntity();
+    auto rickshaw = registry->CreateEntity();
 }
 
 void GameState::Update() {

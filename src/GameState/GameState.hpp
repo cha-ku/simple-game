@@ -5,6 +5,7 @@
 #include <SDL2/SDL_image.h>
 #include <glm/glm.hpp>
 #include "../Logger/Logger.hpp" //TODO: Replace with spdlog at some point
+#include "../ECS/ECS.hpp"
 
 const auto FPS = 60;
 const auto MILLISECS_PER_FRAME = 1000 / FPS;
@@ -17,10 +18,10 @@ private:
     uint64_t milliSecsPrevFrame = 0;
     glm::vec2 playerPos;
     glm::vec2 playerVel;
+    Registry* registry;
 
 public:
-    GameState() = default;
-    ~GameState() = default;
+    // Follow rule of zero - default initialize all members
     void Initialize();
     void ProcessInput();
     void Setup();
