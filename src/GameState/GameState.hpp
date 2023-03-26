@@ -18,10 +18,9 @@ private:
     uint64_t milliSecsPrevFrame = 0;
     glm::vec2 playerPos;
     glm::vec2 playerVel;
-    Registry* registry;
+    std::unique_ptr<Registry> registry{std::make_unique<Registry>()};
 
 public:
-    // Follow rule of zero - default initialize all members
     void Initialize();
     void ProcessInput();
     void Setup();
