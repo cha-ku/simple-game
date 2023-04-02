@@ -148,7 +148,7 @@ private:
    // tracks which component is turned 'on' (i.e. Signature) per entity.
    mutable std::vector<Signature> entityComponentSignatures;
    // track each system type with map
-   std::unordered_map<std::type_index, std::unique_ptr<System>> systems;
+   std::unordered_map<std::type_index, std::shared_ptr<System>> systems;
    
    // only add/delete entities at the end of game loop
    mutable std::set<Entity> entitiesToBeAdded;
@@ -196,7 +196,7 @@ inline void Registry::AddComponent(Entity &entity, TArgs &&...args) {
         componentPools[componentId] = std::unique_ptr<TComponent>(new Pool<TComponent>());
     }
 
-    // componentId is guaranteed to exist - fetch componentPool for that componentId
+    // componentId is now guaranteed to exist - fetch componentPool for that componentId
     std::unique_ptr<Pool<TComponent>> componentPool = Pool<TComponent>(componentPools[componentId]);
 
     if (entityId >= componentPool->Size()) {
@@ -227,7 +227,7 @@ inline bool const Registry::HasComponent(Entity &entity) {
 
 template<typename TSystem, typename... TArgs>
 inline void Registry::AddSystem(TArgs&& ...args) {
-    systems[std::type_index(typeid(TSystem))] = std::make_unique<TSystem>(TSystem(std::forward<TArgs>(args)...));
+    systems[std::type_index(typeid(TSystem))] = std::make_shared<TSystem>(TSystem(std::forward<TArgs>(args)...));
 };
 
 template<typename TSystem>
