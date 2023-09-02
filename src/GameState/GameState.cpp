@@ -1,3 +1,5 @@
+#include "../Components/TransformComponent.hpp"
+#include "../Components/RigidBodyComponent.hpp"
 #include "GameState.hpp"
 
 void GameState::Initialize() {
@@ -8,20 +10,20 @@ void GameState::Initialize() {
 
     //SDL_DisplayMode displayMode;
 
-    window = SDL_CreateWindow(nullptr, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 600, SDL_WINDOW_BORDERLESS);
+    window = SDL_CreateWindow(nullptr, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1920, 1080, SDL_WINDOW_BORDERLESS);
 
-    if (!window) {
+    if (window == nullptr) {
         Logger::Error("Error creating SDL window");
         return;
     }
 
     // SDL_RENDERER_ACCELERATED  - manually instruct SDL to try to use accelerated GPU
-    // SDL_RENDERER_PRESENTVSYNC - use VSync, i.e. sync frame rate with monitor's refresh rate. Enabling VSync will prevent some screen tearing artifacts 
-    //                             when we display displaying our objects in our game loop, as it will try to synchronize the rendering of our frame with 
+    // SDL_RENDERER_PRESENTVSYNC - use VSync, i.e. sync frame rate with monitor's refresh rate. Enabling VSync will prevent some screen tearing artifacts
+    //                             when we display displaying our objects in our game loop, as it will try to synchronize the rendering of our frame with
     //                             the refresh rate of the monitor.
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 
-    if (!renderer) {
+    if (renderer == nullptr) {
         Logger::Error("Error creating SDL renderer");
         return;
     }
@@ -33,9 +35,9 @@ void GameState::Initialize() {
 
 void GameState::ProcessInput() {
     SDL_Event event;
-    while (SDL_PollEvent(&event)) {
+    while (SDL_PollEvent(&event) != 0) {
         switch (event.type) {
-            case SDL_QUIT: 
+            case SDL_QUIT:
                 isRunning = false;
                 break;
             case SDL_KEYDOWN:
@@ -52,23 +54,20 @@ void GameState::Render() {
     SDL_RenderClear(renderer);
 
     // tank texture (PNG)
-    auto tankSurface = IMG_Load("./assets/images/tank-tiger-right.png");
-    auto tankTexture = SDL_CreateTextureFromSurface(renderer, tankSurface); 
-    SDL_FreeSurface(tankSurface);
+    auto *helicopterSurface = IMG_Load("./assets/helicopter/red_helicopter_1.png");
+    auto *helicopterTexture = SDL_CreateTextureFromSurface(renderer, helicopterSurface);
+    SDL_FreeSurface(helicopterSurface);
 
     SDL_Rect dstRect = {static_cast<int>(playerPos.x), static_cast<int>(playerPos.y), 32, 32};
-    SDL_RenderCopy(renderer, tankTexture, nullptr, &dstRect);
-    SDL_DestroyTexture(tankTexture);
+    SDL_RenderCopy(renderer, helicopterTexture, nullptr, &dstRect);
+    SDL_DestroyTexture(helicopterTexture);
 
     SDL_RenderPresent(renderer);
 }
 
 void GameState::Setup() {
-    //playerPos = glm::vec2(10.0, 20.0);
-    //playerVel = glm::vec2(100, 5);
-    auto t = registry->CreateEntity();
-    auto r = registry->CreateEntity();
-    auto rickshaw = registry->CreateEntity();
+    auto helicopter = registry->CreateEntity();
+    registry->AddComponent<TransformComponent>(helicopter, Position(10.0, 30.0), Scale(1.0, 1.0), Rotation(0.0));
 }
 
 void GameState::Update() {
@@ -84,12 +83,13 @@ void GameState::Update() {
         SDL_Delay(timeToWait);
     }
 
+    constexpr auto updateInterval = 1000.0F;
     // Time since last frame in seconds
-    auto deltaTime = (SDL_GetTicks() - milliSecsPrevFrame) / 1000.0f;
+    auto deltaTime = static_cast<float>((SDL_GetTicks() - milliSecsPrevFrame)) / updateInterval;
     milliSecsPrevFrame = SDL_GetTicks();
 
-    playerPos.x += playerVel.x * deltaTime;
-    playerPos.y += playerVel.y * deltaTime;
+    //playerPos.x += playerVel.x * deltaTime;
+    //playerPos.y += playerVel.y * deltaTime;
 
     //Logger::Info({std::to_string(playerPos.x) + " , "  + std::to_string(playerPos.y)});
 }

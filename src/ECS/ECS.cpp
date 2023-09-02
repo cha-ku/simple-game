@@ -2,7 +2,7 @@
 #include "ECS.hpp"
 #include "../Logger/Logger.hpp"
 
-int Entity::GetId() const { return id; }
+unsigned int Entity::GetId() const { return id; }
 
 void System::AddEntity(const Entity& entity) {
     entities.emplace_back(entity);
@@ -27,7 +27,7 @@ Signature const& System::GetComponentSignature() const {
 Entity Registry::CreateEntity() {
     auto entityId = numEntities++;
     Entity entity(entityId);
-    entitiesToBeAdded.insert(std::move(entity));
+    entitiesToBeAdded.insert(entity);
 
     Logger::Info("Entity added : " + std::to_string(entityId));
     return entity;

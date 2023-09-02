@@ -3,7 +3,6 @@ build/
 out/
 cmake-build-*/
 conan-cache/
-assets/
 
 # User spesific settings
 CMakeUserPresets.json
@@ -33,6 +32,7 @@ $RECYCLE.BIN/
 .TemporaryItems
 ehthumbs.db
 Thumbs.db
+vgcore.[0-9]*
 
 # github C++ template ignored files
 # Prerequisites
@@ -69,4 +69,3 @@ Thumbs.db
 *.app
 stabby2d
 # end github C++ template ignored files
- 
