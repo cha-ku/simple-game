@@ -16,11 +16,15 @@ private:
   SDL_Window* window;
   SDL_Renderer* renderer;
   uint64_t milliSecsPrevFrame = 0;
-  glm::vec2 playerPos;
-  glm::vec2 playerVel;
   std::unique_ptr<Registry> registry{std::make_unique<Registry>()};
 
 public:
+  GameState() = default;
+  ~GameState() = default;
+  GameState(GameState&)=delete;
+  GameState& operator=(GameState&)=delete;
+  GameState(GameState&&)=delete;
+  GameState& operator=(GameState&&)=delete;
   void Initialize();
   void ProcessInput();
   void Setup();

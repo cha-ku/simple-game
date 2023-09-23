@@ -5,7 +5,8 @@
 unsigned int Entity::GetId() const { return id; }
 
 void System::AddEntity(const Entity& entity) {
-    entities.emplace_back(entity);
+  Logger::Info("Added entityId " + std::to_string(entity.GetId()) + " to system");
+  entities.emplace_back(entity);
 }
 
 void System::RemoveEntity(Entity &entity) {
@@ -16,7 +17,7 @@ void System::RemoveEntity(Entity &entity) {
     });
 }
 
-std::vector<Entity> System::GetEntities() const {
+std::vector<Entity> System::GetEntities() const{
     return entities;
 }
 
@@ -27,18 +28,23 @@ Signature const& System::GetComponentSignature() const {
 Entity Registry::CreateEntity() {
     auto entityId = numEntities++;
     Entity entity(entityId);
+    entity.registry = this;
     entitiesToBeAdded.insert(entity);
 
-    Logger::Info("Entity added : " + std::to_string(entityId));
+    if (entityId >= entityComponentSignatures.size()) {
+      entityComponentSignatures.resize(entityId + 1);
+    }
+    Logger::Info("Entity created : " + std::to_string(entityId));
     return entity;
 }
 
 void Registry::AddEntityToSystems(const Entity& entity) {
-    const auto& entityComponentSignature = entityComponentSignatures[entity.GetId()];
+  const auto& entityComponentSignature = entityComponentSignatures[entity.GetId()];
 
     // Loop through all systems, add entity to the ones whose signature matches entityComponentSignature
-    for (auto& system : systems) {
-        if (entityComponentSignature == system.second->GetComponentSignature()) {
+    for (const auto& system : systems) {
+      const auto& systemComponentSignature = system.second->GetComponentSignature();
+        if ((entityComponentSignature & systemComponentSignature) == systemComponentSignature) {
             system.second->AddEntity(entity);
         }
     }
@@ -48,4 +54,5 @@ void Registry::Update() {
     for(const auto& entity: entitiesToBeAdded) {
         AddEntityToSystems(entity);
     }
+    entitiesToBeAdded.clear();
 }

@@ -1,5 +1,8 @@
 #include "../Components/TransformComponent.hpp"
 #include "../Components/RigidBodyComponent.hpp"
+#include "../Components/SpriteComponent.hpp"
+#include "../System/MovementSystem.hpp"
+#include "../System/RenderSystem.hpp"
 #include "GameState.hpp"
 
 void GameState::Initialize() {
@@ -33,6 +36,17 @@ void GameState::Initialize() {
     isRunning = true;
 }
 
+void GameState::Setup() {
+  registry->AddSystem<MovementSystem>();
+  registry->AddSystem<RenderSystem>();
+
+  // Create helicopter
+  auto helicopter = registry->CreateEntity();
+  helicopter.AddComponent<TransformComponent>(Position(10.0, 30.0), Scale(1.0, 1.0), Rotation(0.0));
+  helicopter.AddComponent<RigidBodyComponent>(Velocity(1, 2));
+  helicopter.AddComponent<SpriteComponent>(10, 10);
+}
+
 void GameState::ProcessInput() {
     SDL_Event event;
     while (SDL_PollEvent(&event) != 0) {
@@ -50,48 +64,43 @@ void GameState::ProcessInput() {
 }
 
 void GameState::Render() {
-    SDL_SetRenderDrawColor(renderer, 21, 21, 21, SDL_ALPHA_OPAQUE);
-    SDL_RenderClear(renderer);
+  SDL_SetRenderDrawColor(renderer, 21, 21, 21, 255);
+  SDL_RenderClear(renderer);
 
-    // tank texture (PNG)
-    auto *helicopterSurface = IMG_Load("./assets/helicopter/red_helicopter_1.png");
-    auto *helicopterTexture = SDL_CreateTextureFromSurface(renderer, helicopterSurface);
-    SDL_FreeSurface(helicopterSurface);
+  registry->GetSystem<RenderSystem>().Update(renderer);
 
-    SDL_Rect dstRect = {static_cast<int>(playerPos.x), static_cast<int>(playerPos.y), 32, 32};
-    SDL_RenderCopy(renderer, helicopterTexture, nullptr, &dstRect);
-    SDL_DestroyTexture(helicopterTexture);
+  // tank texture (PNG)
+  //auto *helicopterSurface = IMG_Load("./assets/helicopter/red_helicopter_1.png");
+  //auto *helicopterTexture = SDL_CreateTextureFromSurface(renderer, helicopterSurface);
+  //SDL_FreeSurface(helicopterSurface);
 
-    SDL_RenderPresent(renderer);
+  //SDL_Rect dstRect = {static_cast<int>(playerPos.x), static_cast<int>(playerPos.y), 32, 32};
+  //SDL_RenderCopy(renderer, helicopterTexture, nullptr, &dstRect);
+  //SDL_DestroyTexture(helicopterTexture);
+
+  SDL_RenderPresent(renderer);
 }
 
-void GameState::Setup() {
-    auto helicopter = registry->CreateEntity();
-    registry->AddComponent<TransformComponent>(helicopter, Position(10.0, 30.0), Scale(1.0, 1.0), Rotation(0.0));
-}
 
 void GameState::Update() {
-    // wait until we reach MILLISECS_PER_FRAME
-    // ticks = millisecond in SDL parlance
-    // SDL_GetTicks() gets no. of millisecs from when the last time SDL_Init() was called
+  // wait until we reach MILLISECS_PER_FRAME
+  // ticks = millisecond in SDL parlance
+  // SDL_GetTicks() gets no. of millisecs from when the last time SDL_Init() was called
 
-    // Dumb way(blocks other processes) - wait in this loop until current time > past frame draw time + millisecs per frame
-    //while(!SDL_TICKS_PASSED(SDL_GetTicks(), milliSecsPrevFrame + MILLISECS_PER_FRAME));
+  // Dumb way(blocks other processes) - wait in this loop until current time > past frame draw time + millisecs per frame
+  //while(!SDL_TICKS_PASSED(SDL_GetTicks(), milliSecsPrevFrame + MILLISECS_PER_FRAME));
 
-    auto timeToWait = MILLISECS_PER_FRAME - (SDL_GetTicks() - milliSecsPrevFrame);
-    if (timeToWait > 0 && timeToWait <= MILLISECS_PER_FRAME) {
-        SDL_Delay(timeToWait);
-    }
+  auto timeToWait = MILLISECS_PER_FRAME - (SDL_GetTicks64() - milliSecsPrevFrame);
+  if (timeToWait > 0 && timeToWait <= MILLISECS_PER_FRAME) {
+      SDL_Delay(timeToWait);
+  }
 
-    constexpr auto updateInterval = 1000.0F;
-    // Time since last frame in seconds
-    auto deltaTime = static_cast<float>((SDL_GetTicks() - milliSecsPrevFrame)) / updateInterval;
-    milliSecsPrevFrame = SDL_GetTicks();
-
-    //playerPos.x += playerVel.x * deltaTime;
-    //playerPos.y += playerVel.y * deltaTime;
-
-    //Logger::Info({std::to_string(playerPos.x) + " , "  + std::to_string(playerPos.y)});
+  constexpr auto updateInterval = 1000.0f;
+  // Time since last frame in seconds
+  auto deltaTime = static_cast<double>((SDL_GetTicks64() - milliSecsPrevFrame)) / updateInterval;
+  milliSecsPrevFrame = SDL_GetTicks64();
+  registry->Update();
+  registry->GetSystem<MovementSystem>().Update(deltaTime);
 }
 
 void GameState::Run() {
