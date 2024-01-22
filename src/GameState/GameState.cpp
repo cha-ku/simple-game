@@ -12,9 +12,7 @@ void GameState::Initialize() {
     }
 
     //SDL_DisplayMode displayMode;
-
     window = SDL_CreateWindow(nullptr, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1920, 1080, SDL_WINDOW_BORDERLESS);
-
     if (window == nullptr) {
         Logger::Error("Error creating SDL window");
         return;
@@ -40,11 +38,13 @@ void GameState::Setup() {
   registry->AddSystem<MovementSystem>();
   registry->AddSystem<RenderSystem>();
 
+  assetStore->AddTexture(std::string("blue_helicopter_1"), std::string("./assets/helicopter/blue_helicopter_1.png"), renderer);
+
   // Create helicopter
   auto helicopter = registry->CreateEntity();
   helicopter.AddComponent<TransformComponent>(Position(10.0, 30.0), Scale(1.0, 1.0), Rotation(0.0));
   helicopter.AddComponent<RigidBodyComponent>(Velocity(1, 2));
-  helicopter.AddComponent<SpriteComponent>(10, 10);
+  helicopter.AddComponent<SpriteComponent>("blue_helicopter_1", 10, 10);
 }
 
 void GameState::ProcessInput() {

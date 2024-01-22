@@ -5,12 +5,15 @@
 #ifndef STABBY2D_SPRITECOMPONENT_HPP
 #define STABBY2D_SPRITECOMPONENT_HPP
 
+#include <string>
+
 struct SpriteComponent {
-  int width = 0;
-  int height = 0;
+  int width;
+  int height;
+  std::string name;
 
   SpriteComponent()=default;
-  explicit SpriteComponent(int w, int h) : width(w) , height(h) {}
+  explicit SpriteComponent(std::string_view name_, int width_, int height_) : width(width_), height(height_) , name(name_) {}
 };
 
 #endif// STABBY2D_SPRITECOMPONENT_HPP
