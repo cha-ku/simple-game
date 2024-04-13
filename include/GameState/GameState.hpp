@@ -1,12 +1,12 @@
 #ifndef GAMESTATE_HPP
 #define GAMESTATE_HPP
 
+#include "../AssetStore/AssetStore.hpp"
 #include "../ECS/ECS.hpp"
+#include "../Logger/Logger.hpp"//TODO: Replace with spdlog at some point
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <glm/glm.hpp>
-#include "../Logger/Logger.hpp" //TODO: Replace with spdlog at some point
-#include "../AssetStore/AssetStore.hpp"
 
 const auto FPS = 60;
 constexpr auto MILLISECS_PER_FRAME = 1000 / FPS;

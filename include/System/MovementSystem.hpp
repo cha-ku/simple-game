@@ -5,9 +5,9 @@
 #ifndef STABBY2D_MOVEMENTSYSTEM_HPP
 #define STABBY2D_MOVEMENTSYSTEM_HPP
 
-#include "../ECS/ECS.hpp"
-#include "../Components/TransformComponent.hpp"
-#include "../Components/RigidBodyComponent.hpp"
+#include "ECS.hpp"
+#include "RigidBodyComponent.hpp"
+#include "TransformComponent.hpp"
 
 class MovementSystem : public System {
 public:

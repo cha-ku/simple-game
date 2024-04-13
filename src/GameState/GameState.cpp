@@ -1,9 +1,9 @@
-#include "../Components/TransformComponent.hpp"
-#include "../Components/RigidBodyComponent.hpp"
-#include "../Components/SpriteComponent.hpp"
-#include "../System/MovementSystem.hpp"
-#include "../System/RenderSystem.hpp"
 #include "GameState.hpp"
+#include "RigidBodyComponent.hpp"
+#include "SpriteComponent.hpp"
+#include "TransformComponent.hpp"
+#include "MovementSystem.hpp"
+#include "RenderSystem.hpp"
 
 void GameState::Initialize() {
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
