@@ -5,10 +5,10 @@
 #ifndef STABBY2D_RENDERSYSTEM_HPP
 #define STABBY2D_RENDERSYSTEM_HPP
 
-#include <SDL2/SDL.h>
-#include "../ECS/ECS.hpp"
-#include "../Components/TransformComponent.hpp"
 #include "../Components/SpriteComponent.hpp"
+#include "../Components/TransformComponent.hpp"
+#include "../ECS/ECS.hpp"
+#include <SDL2/SDL.h>
 
 class RenderSystem : public System {
 public:

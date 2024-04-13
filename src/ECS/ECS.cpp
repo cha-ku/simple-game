@@ -1,6 +1,5 @@
-#include <algorithm>
 #include "ECS.hpp"
-#include "../Logger/Logger.hpp"
+#include "Logger.hpp"
 
 unsigned int Entity::GetId() const { return id; }
 

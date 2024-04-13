@@ -1,4 +1,4 @@
-#include "GameState/GameState.hpp"
+#include "GameState.hpp"
 
 // NOLINTNEXTLINE(bugprone-exception-escape)
 int main() {

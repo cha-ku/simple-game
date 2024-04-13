@@ -2,9 +2,9 @@
 #define TRANSFORMCOMPONENT_HPP
 
 #include "../Logger/Logger.hpp"
-#include <glm/glm.hpp>
 #include "Position.hpp"
 #include "Scale.hpp"
+#include <glm/glm.hpp>
 
 using Rotation = double;
 

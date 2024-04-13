@@ -1,14 +1,14 @@
 #ifndef ECS_HPP
 #define ECS_HPP
 
-#include <cstdint>
+#include "Logger.hpp"
 #include <bitset>
-#include <vector>
-#include <unordered_map>
+#include <cstdint>
+#include <memory>
 #include <set>
 #include <typeindex>
-#include <memory>
-#include "../Logger/Logger.hpp"
+#include <unordered_map>
+#include <vector>
 
 constexpr uint8_t MAX_COMPONENTS = 32;
 // Each System needs to keep track of what components are active for that particular system at a point

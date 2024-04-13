@@ -3,7 +3,7 @@
 //
 
 #include "AssetStore.hpp"
-#include "../Logger/Logger.hpp"
+#include "Logger.hpp"
 
 void AssetStore::ClearAssets() {
   for(auto& texture : textures) {
