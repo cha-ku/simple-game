@@ -8,12 +8,9 @@
 #include <string>
 
 struct SpriteComponent {
-  int width;
-  int height;
+  uint64_t width {0};
+  uint64_t height {0};
   std::string name;
-
-  SpriteComponent()=default;
-  explicit SpriteComponent(std::string_view name_, int width_, int height_) : width(width_), height(height_) , name(name_) {}
 };
 
 #endif// STABBY2D_SPRITECOMPONENT_HPP

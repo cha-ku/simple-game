@@ -1,24 +1,24 @@
 #ifndef GAMESTATE_HPP
 #define GAMESTATE_HPP
 
-#include "../AssetStore/AssetStore.hpp"
-#include "../ECS/ECS.hpp"
-#include "../Logger/Logger.hpp"//TODO: Replace with spdlog at some point
+#include "Logger.hpp" //TODO: Replace with spdlog at some point
+#include "ECS.hpp"
+#include "AssetManager.hpp"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <glm/glm.hpp>
 
-const auto FPS = 60;
+constexpr auto FPS = 60;
 constexpr auto MILLISECS_PER_FRAME = 1000 / FPS;
 
 class GameState {
 private:
   bool isRunning{false};
-  SDL_Window* window;
-  SDL_Renderer* renderer;
+  SDL_Window* window{nullptr};
+  SDL_Renderer* renderer{nullptr};
   uint64_t milliSecsPrevFrame = 0;
-  std::unique_ptr<Registry> registry{std::make_unique<Registry>()};
-  std::unique_ptr<AssetStore> assetStore{std::make_unique<AssetStore>()};
+  std::unique_ptr<Registry> registry;
+  std::unique_ptr<AssetManager> assetStore;
 
 public:
   GameState() = default;
@@ -34,7 +34,7 @@ public:
   void Render();
   void Run();
   void Destroy();
-  uint16_t windowWidth = 1024;
-  uint16_t windowHeight = 768;
+  static constexpr uint16_t windowWidth = 1024;
+  static constexpr uint16_t windowHeight = 768;
 };
 #endif

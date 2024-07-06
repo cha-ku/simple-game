@@ -24,6 +24,10 @@ Signature const& System::GetComponentSignature() const {
     return componentSignature;
 }
 
+void System::PrintName() const {
+  Logger::Info("System");
+}
+
 Entity Registry::CreateEntity() {
     auto entityId = numEntities++;
     Entity entity(entityId);

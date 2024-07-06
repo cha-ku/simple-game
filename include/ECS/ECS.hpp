@@ -1,14 +1,16 @@
 #ifndef ECS_HPP
 #define ECS_HPP
 
-#include "Logger.hpp"
 #include <bitset>
 #include <cstdint>
+#include <iostream>
 #include <memory>
 #include <set>
 #include <typeindex>
 #include <unordered_map>
 #include <vector>
+
+#include "Logger.hpp"
 
 constexpr uint8_t MAX_COMPONENTS = 32;
 // Each System needs to keep track of what components are active for that particular system at a point
@@ -65,12 +67,13 @@ public:
    void RemoveEntity(Entity& entity);
    std::vector<Entity> GetEntities() const;
    Signature const& GetComponentSignature() const;
+   virtual void PrintName() const;
 
    // Valid entities must have atleast one component
    template <typename TComponent> void RequireComponent();
 };
 
-// IPool is pure virtual base class
+// IPool is abstract base class
 class IPool {
 public:
     virtual ~IPool() {} // virtual destructor
@@ -80,11 +83,12 @@ public:
 template <typename T>
 class Pool : public IPool {
 private:
-  mutable std::vector<T> data;
+  static constexpr int defaultPoolSize = 64;
+  std::vector<T> data;
 
 public:
   // Rule of five (https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#Rc-five)
-  explicit Pool(uint16_t size = 64) {
+  explicit Pool(uint16_t size = defaultPoolSize) {
       data.resize(size);
   };
 
@@ -104,14 +108,14 @@ public:
 
   // @brief Get size of underlying storage
   // @return size_t
-  auto Size() const -> size_t {
+  [[nodiscard]] auto Size() const -> size_t {
       return data.size();
   }
 
   // @brief vector::reserve if n is greater than underlying container size, vector::resize otherwise
   // @param n
   // @return void
-  auto Resize(size_t n) const -> void { data.resize(n); }
+  auto Resize(size_t n) -> void { data.resize(n); }
 
   auto Clear() -> void { data.clear(); }
 
@@ -135,20 +139,20 @@ public:
 // registry class is responsible for creating, removing and tracking entities, components and systems
 class Registry {
 private:
-  mutable size_t numEntities = 0;
+  size_t numEntities = 0;
 
   // component IDs are sequential and each element in componentPools points to a Pool of Entities associated with that particular Component.
-  mutable std::vector<std::shared_ptr<IPool>> componentPools;
+  std::vector<std::shared_ptr<IPool>> componentPools;
 
   // tracks which component is turned 'on' (i.e. Signature) per entity.
-  mutable std::vector<Signature> entityComponentSignatures;
+  std::vector<Signature> entityComponentSignatures;
 
   // track each system type with map
-  std::unordered_map<std::string, std::shared_ptr<System>> systems;
+  std::unordered_map<std::type_index, std::shared_ptr<System>> systems;
 
   // only add/delete entities at the end of game loop
-  mutable std::set<Entity> entitiesToBeAdded;
-  mutable std::set<Entity> entitiesToBeKilled;
+  std::set<Entity> entitiesToBeAdded;
+  std::set<Entity> entitiesToBeKilled;
 
 public:
   // Entity management
@@ -232,25 +236,27 @@ TComponent& Registry::GetComponent(Entity &entity) const {
 
 template<typename TSystem, typename... TArgs>
 inline void Registry::AddSystem(TArgs&& ...args) {
-  systems[std::string(std::type_index(typeid(TSystem)).name())] =
-    std::make_shared<TSystem>(TSystem(std::forward<TArgs>(args)...));
+  auto newSystem = std::make_shared<TSystem>(std::forward<TArgs>(args)...);
+  newSystem->PrintName();
+  //systems[std::type_index(typeid(TSystem))] = newSystem;
+  systems.insert(std::make_pair(std::type_index(typeid(TSystem)), newSystem));
 };
 
 template<typename TSystem>
 inline void Registry::RemoveSystem(){
-  std::erase_if(systems, [](const auto& item) {
-      return item.first == std::string(std::type_index(typeid(TSystem)).name());
+  std::erase_if(systems, [](const auto& item) -> bool {
+      return item.first == std::type_index(typeid(TSystem));
   });
 };
 
 template<typename TSystem>
 inline bool Registry::HasSystem() {
-  return systems.count(std::string(std::type_index(typeid(TSystem)).name()));
+  return systems.contains(std::type_index(typeid(TSystem)));
 };
 
 template<typename TSystem>
 inline TSystem& Registry::GetSystem() {
-  std::string key(std::type_index(typeid(TSystem)).name());
+  auto key(std::type_index(typeid(TSystem)));
   return *std::static_pointer_cast<TSystem>(systems[key]);
 };
 

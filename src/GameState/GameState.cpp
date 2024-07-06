@@ -1,9 +1,12 @@
+#include "AssetManager.hpp"
 #include "GameState.hpp"
+#include "MovementSystem.hpp"
+#include "RenderSystem.hpp"
 #include "RigidBodyComponent.hpp"
 #include "SpriteComponent.hpp"
 #include "TransformComponent.hpp"
-#include "MovementSystem.hpp"
-#include "RenderSystem.hpp"
+#include "Position.hpp"
+#include "Scale.hpp"
 
 void GameState::Initialize() {
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
@@ -38,13 +41,15 @@ void GameState::Setup() {
   registry->AddSystem<MovementSystem>();
   registry->AddSystem<RenderSystem>();
 
-  assetStore->AddTexture(std::string("blue_helicopter_1"), std::string("./assets/helicopter/blue_helicopter_1.png"), renderer);
+  assetStore->AddTexture("blue_helicopter_1",
+    std::string("/home/chaku/myworkspace/projects/stabby2d/assets/helicopter/blue_helicopter_1.png"),
+    renderer);
 
   // Create helicopter
   auto helicopter = registry->CreateEntity();
-  helicopter.AddComponent<TransformComponent>(Position(10.0, 30.0), Scale(1.0, 1.0), Rotation(0.0));
-  helicopter.AddComponent<RigidBodyComponent>(Velocity(1, 2));
-  helicopter.AddComponent<SpriteComponent>("blue_helicopter_1", 10, 10);
+  helicopter.AddComponent<TransformComponent>();
+  helicopter.AddComponent<RigidBodyComponent>(glm::vec2({10, 10}));
+  helicopter.AddComponent<SpriteComponent>(10, 10, "blue_helicopter_1");
 }
 
 void GameState::ProcessInput() {
@@ -59,6 +64,8 @@ void GameState::ProcessInput() {
                     isRunning = false;
                 }
                 break;
+            default:
+              break;
         }
     }
 }
@@ -66,8 +73,7 @@ void GameState::ProcessInput() {
 void GameState::Render() {
   SDL_SetRenderDrawColor(renderer, 21, 21, 21, 255);
   SDL_RenderClear(renderer);
-
-  registry->GetSystem<RenderSystem>().Update(renderer);
+  registry->GetSystem<RenderSystem>().Update(renderer, assetStore);
 
   // tank texture (PNG)
   //auto *helicopterSurface = IMG_Load("./assets/helicopter/red_helicopter_1.png");
@@ -95,9 +101,9 @@ void GameState::Update() {
       SDL_Delay(timeToWait);
   }
 
-  constexpr auto updateInterval = 1000.0f;
+  constexpr auto updateInterval = 1000.0F;
   // Time since last frame in seconds
-  auto deltaTime = static_cast<double>((SDL_GetTicks64() - milliSecsPrevFrame)) / updateInterval;
+  auto deltaTime = static_cast<float>((SDL_GetTicks64() - milliSecsPrevFrame)) / updateInterval;
   milliSecsPrevFrame = SDL_GetTicks64();
   registry->Update();
   registry->GetSystem<MovementSystem>().Update(deltaTime);

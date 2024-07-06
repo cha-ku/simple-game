@@ -6,26 +6,28 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 add_compile_options(-Wall -Wfatal-errors -pedantic)
 
-add_library(components STATIC include/Components/Position.hpp include/Components/RigidBodyComponent.hpp include/Components/Scale.hpp
-        include/Components/SpriteComponent.hpp include/Components/TransformComponent.hpp include/Components/Velocity.hpp)
+add_library(utils STATIC include/Utils/Scale.hpp include/Utils/Velocity.hpp include/Utils/Position.hpp)
+set_target_properties(utils PROPERTIES LINKER_LANGUAGE CXX)
+
+add_library(components STATIC include/Components/RigidBodyComponent.hpp include/Components/SpriteComponent.hpp include/Components/TransformComponent.hpp)
 target_include_directories(components PUBLIC include/Components)
 set_target_properties(components PROPERTIES LINKER_LANGUAGE CXX)
 
 add_library(ecs STATIC include/ECS/ECS.hpp src/ECS/ECS.cpp)
-target_include_directories(ecs PUBLIC include/ECS include/Logger)
+target_include_directories(ecs PUBLIC include/ECS include/Logger include/Components)
 set_target_properties(ecs PROPERTIES LINKER_LANGUAGE CXX)
 
 add_library(game_state STATIC src/GameState/GameState.cpp include/GameState/GameState.hpp)
-target_include_directories(game_state PUBLIC include/GameState include/Components include/System include/ECS)
-target_link_libraries(game_state PUBLIC ecs)
+target_include_directories(game_state PUBLIC include/GameState include/Components include/System include/ECS include/AssetManager include/Utils)
+target_link_libraries(game_state PUBLIC ecs utils)
 set_target_properties(game_state PROPERTIES LINKER_LANGUAGE CXX)
 
 add_library(logger STATIC src/Logger/Logger.cpp include/Logger/Logger.hpp)
 target_include_directories(logger PUBLIC include/Logger)
 set_target_properties(logger PROPERTIES LINKER_LANGUAGE CXX)
 
-add_library(asset_store STATIC include/AssetStore/AssetStore.hpp src/AssetStore/AssetStore.cpp)
-target_include_directories(asset_store PUBLIC include/AssetStore include/Logger)
+add_library(asset_store STATIC include/AssetManager/AssetManager.hpp src/AssetStore/AssetManager.cpp)
+target_include_directories(asset_store PUBLIC include/AssetManager include/Logger)
 set_target_properties(asset_store PROPERTIES LINKER_LANGUAGE CXX)
 
 add_library(system STATIC include/System/MovementSystem.hpp include/System/RenderSystem.hpp)

@@ -1,20 +1,15 @@
 #ifndef TRANSFORMCOMPONENT_HPP
 #define TRANSFORMCOMPONENT_HPP
 
-#include "../Logger/Logger.hpp"
-#include "Position.hpp"
-#include "Scale.hpp"
 #include <glm/glm.hpp>
-
-using Rotation = double;
+#include <utility>
 
 struct TransformComponent {
-  Position position;
-  Scale scale;
-  Rotation rotation = 0;
+  glm::vec2 position{0, 0};
+  glm::vec2 scale{1, 1};
+  double rotation{0};
 
-  TransformComponent()=default;
-  explicit TransformComponent(Position position , Scale scale, Rotation rotation) : position(position), scale(scale), rotation(rotation) {}
+  explicit TransformComponent(glm::vec2 pos=glm::vec2(0, 0), glm::vec2 scl=glm::vec2(1, 1), double rot=0.0) : position(pos), scale(scl), rotation(rot) { }
 };
 
 #endif
