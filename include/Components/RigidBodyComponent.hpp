@@ -5,9 +5,6 @@
 
 struct RigidBodyComponent {
   Velocity velocity;
-
-  RigidBodyComponent()=default;
-  explicit RigidBodyComponent(Velocity&& velocity) : velocity(velocity) {}
 };
 
 #endif

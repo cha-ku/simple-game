@@ -6,14 +6,13 @@
 #define STABBY2D_SPRITECOMPONENT_HPP
 
 #include <string>
+#include <utility>
 
 struct SpriteComponent {
-  int width;
-  int height;
   std::string name;
-
-  SpriteComponent()=default;
-  explicit SpriteComponent(std::string_view name_, int width_, int height_) : width(width_), height(height_) , name(name_) {}
+  int width{};
+  int height{};
+  SDL_Rect srcRect{};
 };
 
 #endif// STABBY2D_SPRITECOMPONENT_HPP

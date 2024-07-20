@@ -16,7 +16,7 @@ target_include_directories(ecs PUBLIC include/ECS include/Logger)
 set_target_properties(ecs PROPERTIES LINKER_LANGUAGE CXX)
 
 add_library(game_state STATIC src/GameState/GameState.cpp include/GameState/GameState.hpp)
-target_include_directories(game_state PUBLIC include/GameState include/Components include/System include/ECS)
+target_include_directories(game_state PUBLIC include/GameState include/Components include/System include/ECS include/AssetStore)
 target_link_libraries(game_state PUBLIC ecs)
 set_target_properties(game_state PROPERTIES LINKER_LANGUAGE CXX)
 
@@ -24,12 +24,12 @@ add_library(logger STATIC src/Logger/Logger.cpp include/Logger/Logger.hpp)
 target_include_directories(logger PUBLIC include/Logger)
 set_target_properties(logger PROPERTIES LINKER_LANGUAGE CXX)
 
-add_library(asset_store STATIC include/AssetStore/AssetStore.hpp src/AssetStore/AssetStore.cpp)
+add_library(asset_store STATIC include/AssetStore/AssetManager.hpp src/AssetManager/AssetManager.cpp)
 target_include_directories(asset_store PUBLIC include/AssetStore include/Logger)
 set_target_properties(asset_store PROPERTIES LINKER_LANGUAGE CXX)
 
 add_library(system STATIC include/System/MovementSystem.hpp include/System/RenderSystem.hpp)
-target_include_directories(system PUBLIC include/System)
+target_include_directories(system PUBLIC include/System include/AssetStore)
 set_target_properties(system PROPERTIES LINKER_LANGUAGE CXX)
 
 add_executable(${PROJECT_NAME} src/main.cpp)

@@ -2,8 +2,8 @@
 // Created by chaku on 23/09/23.
 //
 
-#ifndef STABBY2D_ASSETSTORE_HPP
-#define STABBY2D_ASSETSTORE_HPP
+#ifndef STABBY2D_ASSETMANAGER_HPP
+#define STABBY2D_ASSETMANAGER_HPP
 
 #include <unordered_map>
 #include <memory>
@@ -11,15 +11,16 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 
-class AssetStore {
+class AssetManager
+{
 private:
   std::unordered_map<std::string, SDL_Texture*> textures;
 
 public:
   void ClearAssets();
   void AddTexture(const std::string& name, const std::string& filePath, SDL_Renderer* renderer);
-  SDL_Texture*& GetTexture(std::string& key);
+  SDL_Texture*& GetTexture(const std::string& key);
 };
 
 
-#endif// STABBY2D_ASSETSTORE_HPP
+#endif// STABBY2D_ASSETMANAGER_HPP

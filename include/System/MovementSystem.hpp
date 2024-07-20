@@ -16,11 +16,11 @@ public:
     RequireComponent<RigidBodyComponent>();
   }
 
-  void Update(float deltaTime) {
+  void Update(double deltaTime) {
     for(auto& entity : GetEntities()) {
       auto& transform = entity.GetComponent<TransformComponent>();
       const auto& rigidBody = entity.GetComponent<RigidBodyComponent>();
-      transform.position.coords += rigidBody.velocity.velocity * deltaTime;
+      transform.position.coords += rigidBody.velocity.velocity * static_cast<float>(deltaTime);
 
       Logger::Info("Entity id = " + std::to_string(entity.GetId()) +
                    " position is now (" + std::to_string(transform.position.coords.x) +
