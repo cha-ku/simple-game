@@ -10,8 +10,8 @@
 using Rotation = double;
 
 struct TransformComponent {
-  Position position;
-  Scale scale;
+  Position position{0.0F, 0.0F};
+  Scale scale{1.0F, 1.0F};
   Rotation rotation{0};
 };
 

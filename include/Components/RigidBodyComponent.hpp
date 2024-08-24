@@ -4,7 +4,7 @@
 #include "Velocity.hpp"
 
 struct RigidBodyComponent {
-  Velocity velocity;
+  Velocity velocity{0.0F, 0.0F};
 };
 
 #endif

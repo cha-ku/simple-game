@@ -27,10 +27,10 @@ public:
       SDL_Rect srcRect = sprite.srcRect;
 
       // destination SDL_Rect
-      auto dstRect = SDL_Rect(static_cast<int>(transform.position.coords.x),
-        static_cast<int>(transform.position.coords.y),
-        static_cast<int>(static_cast<float>(sprite.width) * transform.scale.coords.x),
-        static_cast<int>(static_cast<float>(sprite.height) * transform.scale.coords.y));
+      auto dstRect = SDL_Rect(static_cast<int>(transform.position.x),
+        static_cast<int>(transform.position.y),
+        static_cast<int>(static_cast<float>(sprite.width) * transform.scale.x),
+        static_cast<int>(static_cast<float>(sprite.height) * transform.scale.y));
 
       SDL_RenderCopyEx(renderer,
         assetManager->GetTexture(sprite.name),

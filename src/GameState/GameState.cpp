@@ -1,10 +1,11 @@
 #include "GameState.hpp"
+#include "MovementSystem.hpp"
+#include "RenderSystem.hpp"
 #include "RigidBodyComponent.hpp"
 #include "SpriteComponent.hpp"
 #include "TransformComponent.hpp"
-#include "MovementSystem.hpp"
-#include "RenderSystem.hpp"
-
+#include <fstream>
+#include <sstream>
 void GameState::Initialize() {
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
         Logger::Error("Error Initializing SDL");
@@ -38,13 +39,33 @@ void GameState::Setup() {
   registry->AddSystem<MovementSystem>();
   registry->AddSystem<RenderSystem>();
 
-  assetStore->AddTexture(std::string("tank-right"),std::string("/home/chaku/myworkspace/projects/stabby2d/assets/images/tank-panther-right.png"), renderer);
+//  assetStore->AddTexture(std::string("tank-right"),std::string("../assets/images/tank-panther-right.png"), renderer);
+  assetStore->AddTexture("tilemap", "../assets/tilemaps/jungle.png", renderer);
 
   // Create truck
   auto truck = registry->CreateEntity();
-  truck.AddComponent<TransformComponent>(Position(10.0, 30.0), Scale(1.0, 1.0), Rotation(0.0));
-  truck.AddComponent<RigidBodyComponent>(Velocity(10, 20));
-  truck.AddComponent<SpriteComponent>(std::string("tank-right"), 32, 32, SDL_Rect(0, 0, 32, 32));
+  truck.AddComponent<TransformComponent>(Position(10.0F, 30.0F), Scale(1.0F, 1.0F), Rotation(0.0));
+  truck.AddComponent<RigidBodyComponent>(Velocity(10.0F, 20.0F));
+  truck.AddComponent<SpriteComponent>("tank-right", 32, 32, SDL_Rect(0, 0, 32, 32));
+
+  // create tilemap
+  auto ConstructTileMap = [this](const int tileMapSize, const float tileMapScale) {
+    //const auto numRows = 3;
+    //const auto numCols = 6;
+    const char delim = ',';
+    auto tilemap = registry->CreateEntity();
+    std::ifstream mapFile;
+    mapFile.open("../assets/tilemaps/jungle.map");
+    for(std::string line; std::getline(mapFile, line);) {
+      std::string numStr;
+      std::stringstream ssLine(line);
+      while(std::getline(ssLine, numStr, delim)) {
+        Logger::Info(numStr);
+      }
+    }
+    mapFile.close();
+  };
+  ConstructTileMap(32, 2.0);
 }
 
 void GameState::ProcessInput() {

@@ -70,4 +70,8 @@ vgcore.[0-9]*
 stabby2d
 # end github C++ template ignored files
 
+# Game assets
+./assets/*
+# End game assets
+
 # ignore asset files - remove when free assets will be used

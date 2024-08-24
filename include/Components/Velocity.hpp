@@ -4,11 +4,13 @@
 #include <glm/glm.hpp>
 
 struct Velocity {
-  glm::vec2 velocity;
+public:
+  float x;
+  float y;
 
-  Velocity() : velocity(glm::vec2(0.0, 0.0)) {}
-  Velocity(float vel_x, float vel_y) : velocity(glm::vec2(vel_x, vel_y)) {}
-  explicit Velocity(glm::vec2&& velocity) : velocity(velocity) {}
+  Velocity(float x_, float y_) : x(x_), y(y_), velocity(x, y) {}
+private:
+  glm::vec2 velocity;
 };
 
 #endif
