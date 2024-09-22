@@ -41,3 +41,5 @@ find_package(SDL2 REQUIRED)
 find_package(SDL2_image REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE SDL2)
 target_link_libraries(${PROJECT_NAME} PRIVATE SDL2_image)
+
+file(COPY assets DESTINATION ${CMAKE_BINARY_DIR})

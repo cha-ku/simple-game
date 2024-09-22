@@ -39,23 +39,23 @@ void GameState::Setup() {
   registry->AddSystem<MovementSystem>();
   registry->AddSystem<RenderSystem>();
 
-//  assetStore->AddTexture(std::string("tank-right"),std::string("../assets/images/tank-panther-right.png"), renderer);
-  assetStore->AddTexture("tilemap", "../assets/tilemaps/jungle.png", renderer);
+  assetStore->AddTexture(std::string("tank-right"),std::string("./assets/images/tank-panther-right.png"), renderer);
+  assetStore->AddTexture("tilemap", "./assets/tilemaps/jungle.png", renderer);
 
   // Create truck
-  auto truck = registry->CreateEntity();
-  truck.AddComponent<TransformComponent>(Position(10.0F, 30.0F), Scale(1.0F, 1.0F), Rotation(0.0));
-  truck.AddComponent<RigidBodyComponent>(Velocity(10.0F, 20.0F));
-  truck.AddComponent<SpriteComponent>("tank-right", 32, 32, SDL_Rect(0, 0, 32, 32));
+  auto&& tankRight = registry->CreateEntity();
+  tankRight.AddComponent<TransformComponent>(Position(10.0F, 30.0F), Scale(1.0F, 1.0F), Rotation(0.0));
+  tankRight.AddComponent<RigidBodyComponent>(Velocity(10.0F, 20.0F));
+  tankRight.AddComponent<SpriteComponent>("tank-right", 32, 32, SDL_Rect(0, 0, 32, 32));
 
   // create tilemap
   auto ConstructTileMap = [this](const int tileMapSize, const float tileMapScale) {
-    //const auto numRows = 3;
-    //const auto numCols = 6;
+    // const auto numRows = 3;
+    // const auto numCols = 6;
     const char delim = ',';
-    auto tilemap = registry->CreateEntity();
+    // auto& tilemap = registry->CreateEntity();
     std::ifstream mapFile;
-    mapFile.open("../assets/tilemaps/jungle.map");
+    mapFile.open("./assets/tilemaps/jungle.map");
     for(std::string line; std::getline(mapFile, line);) {
       std::string numStr;
       std::stringstream ssLine(line);
