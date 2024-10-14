@@ -23,9 +23,9 @@ public:
       transform.position.x += rigidBody.velocity.x * static_cast<float>(deltaTime);
       transform.position.y += rigidBody.velocity.y * static_cast<float>(deltaTime);
 
-      Logger::Info("Entity id = " + std::to_string(entity.GetId()) +
-                   " position is now (" + std::to_string(transform.position.x) +
-                    " , " + std::to_string(transform.position.y) + ")");
+//      Logger::Info("Entity m_entityId = " + std::to_string(entity.GetId()) +
+//                   " position is now (" + std::to_string(transform.position.x) +
+//                    " , " + std::to_string(transform.position.y) + ")");
     }
   }
 

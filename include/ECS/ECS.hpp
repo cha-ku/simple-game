@@ -17,14 +17,14 @@ using Signature = std::bitset<MAX_COMPONENTS>;
 
 class IComponent {
 protected:
-  inline static unsigned int nextId;
+  inline static unsigned int m_nextId;
 };
 
 template <typename T>
 class Component : public IComponent {
 public:
   static unsigned int GetId() {
-    static const auto componentId = nextId++;
+    static const auto componentId = m_nextId++;
     return componentId;
   }
 };
@@ -34,18 +34,18 @@ class Registry;
 
 class Entity {
 private:
-    uint64_t id;
+    uint64_t m_entityId;
 
 public:
     // Rule of zero (https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#c20-if-you-can-avoid-defining-default-operations-do)
-    explicit Entity(uint64_t entityId) : id(entityId) {}
+    explicit Entity(uint64_t entityId) : m_entityId(entityId) {}
 
     [[nodiscard]] unsigned int GetId() const;
 
-    bool operator==(const Entity& other) const { return id == other.id; }
-    bool operator!=(const Entity& other) const { return id != other.id; }
-    bool operator<(const Entity& other) const { return id < other.id; }
-    bool operator>(const Entity& other) const { return id > other.id; }
+    bool operator==(const Entity& other) const { return m_entityId == other.m_entityId; }
+    bool operator!=(const Entity& other) const { return m_entityId != other.m_entityId; }
+    bool operator<(const Entity& other) const { return m_entityId < other.m_entityId; }
+    bool operator>(const Entity& other) const { return m_entityId > other.m_entityId; }
 
     Registry* registry;
     template <typename TComponent, typename ...TArgs> void AddComponent(TArgs&& ...args);
@@ -54,11 +54,11 @@ public:
     template <typename TComponent> TComponent& GetComponent();
 };
 
-// System processes specific entities
+// System processes specific m_entities
 class System {
 private:
-   Signature componentSignature;
-   std::vector<Entity> entities;
+   Signature m_componentSignature;
+   std::vector<Entity> m_entities;
 
 public:
    void AddEntity(const Entity& entity);
@@ -66,7 +66,7 @@ public:
    std::vector<Entity> GetEntities() const;
    Signature const& GetComponentSignature() const;
 
-   // Valid entities must have atleast one component
+   // Valid m_entities must have atleast one component
    template <typename TComponent> void RequireComponent();
 };
 
@@ -80,15 +80,14 @@ public:
 template <typename T>
 class Pool : public IPool {
 private:
-  mutable std::vector<T> data;
+  std::vector<T> m_data;
 
 public:
   // Rule of five (https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#Rc-five)
-  explicit Pool(uint16_t size = 64) {
-      data.resize(size);
+  explicit Pool(uint16_t size = 64) { m_data.resize(size);
   };
 
-  Pool(Pool& other) : data{other.data} {}
+  Pool(Pool& other) : m_data{other.m_data } {}
 
   Pool& operator=(const Pool& other) = default;
 
@@ -99,56 +98,54 @@ public:
   ~Pool() override = default;
 
   auto IsEmpty() const {
-      return data.empty();
+      return m_data.empty();
   }
 
   // @brief Get size of underlying storage
   // @return size_t
   auto Size() const -> size_t {
-      return data.size();
+      return m_data.size();
   }
 
   // @brief vector::reserve if n is greater than underlying container size, vector::resize otherwise
   // @param n
   // @return void
-  auto Resize(size_t n) const -> void { data.resize(n); }
+  auto Resize(size_t n) -> void { m_data.resize(n); }
 
-  auto Clear() -> void { data.clear(); }
+  auto Clear() -> void { m_data.clear(); }
 
-  auto Add(T& object) -> void {
-    data.emplace_back(object);
+  auto Add(T& object) -> void { m_data.emplace_back(object);
   }
 
-  auto Set(size_t index, T& object) -> void {
-      data[index] = object;
+  auto Set(size_t index, T& object) -> void { m_data[index] = object;
   }
 
   auto Get(size_t index) -> T& {
-      return static_cast<T&>(data[index]);
+      return static_cast<T&>(m_data[index]);
   }
 
   T& operator [](size_t index) {
-      return data[static_cast<int>(index)];
+      return m_data[static_cast<int>(index)];
   }
 };
 
-// registry class is responsible for creating, removing and tracking entities, components and systems
+// registry class is responsible for creating, removing and tracking m_entities, components and m_systems
 class Registry {
 private:
-  mutable size_t numEntities = 0;
+  size_t m_numEntities = 0;
 
-  // component IDs are sequential and each element in componentPools points to a Pool of Entities associated with that particular Component.
-  mutable std::vector<std::shared_ptr<IPool>> componentPools;
+  // component IDs are sequential and each element in m_componentPools points to a Pool of Entities associated with that particular Component.
+  std::vector<std::shared_ptr<IPool>> m_componentPools;
 
   // tracks which component is turned 'on' (i.e. Signature) per entity.
-  mutable std::vector<Signature> entityComponentSignatures;
+  std::vector<Signature> m_entityComponentSignatures;
 
   // track each system type with map
-  std::unordered_map<std::string, std::shared_ptr<System>> systems;
+  std::unordered_map<std::string, std::shared_ptr<System>> m_systems;
 
-  // only add/delete entities at the end of game loop
-  mutable std::set<Entity> entitiesToBeAdded;
-  mutable std::set<Entity> entitiesToBeKilled;
+  // only add/delete m_entities at the end of game loop
+  std::set<Entity> m_entitiesToBeAdded;
+  std::set<Entity> m_entitiesToBeKilled;
 
 public:
   // Entity management
@@ -174,7 +171,7 @@ public:
 
 template<typename TComponent>
 void System::RequireComponent() {
-  componentSignature.set(Component<TComponent>::GetId());
+  m_componentSignature.set(Component<TComponent>::GetId());
 };
 
 template<typename TComponent, typename... TArgs>
@@ -182,28 +179,28 @@ inline void Registry:: AddComponent(Entity &entity, TArgs &&...args) {
   const auto componentId = Component<TComponent>::GetId();
   const auto entityId = entity.GetId();
 
-  // resize if component ID is greater than what componentPools can hold
-  if (componentId >= componentPools.size()) {
-    componentPools.resize(componentId + 1, nullptr);
+  // resize if component ID is greater than what m_componentPools can hold
+  if (componentId >= m_componentPools.size()) {
+      m_componentPools.resize(componentId + 1, nullptr);
   }
 
   // create Pool for a Component type if it doesn't exist
-  if (!componentPools[componentId]) {
-    componentPools[componentId] = std::make_shared<Pool<TComponent>>();
+  if (!m_componentPools[componentId]) {
+      m_componentPools[componentId] = std::make_shared<Pool<TComponent>>();
   }
 
-  std::shared_ptr<Pool<TComponent>> componentPool = std::static_pointer_cast<Pool<TComponent>>(componentPools[componentId]);
+  std::shared_ptr<Pool<TComponent>> componentPool = std::static_pointer_cast<Pool<TComponent>>(m_componentPools[componentId]);
 
   if (entityId >= componentPool->Size()) {
-    componentPool->Resize(numEntities);
+    componentPool->Resize(m_numEntities);
   }
 
   TComponent newComponent(std::forward<TArgs>(args)...);
 
   componentPool->Set(entityId, newComponent);
 
-  entityComponentSignatures.resize(componentPools.size());
-  entityComponentSignatures[entityId].set(componentId);
+  m_entityComponentSignatures.resize(m_componentPools.size());
+  m_entityComponentSignatures[entityId].set(componentId);
 };
 
 template<typename TComponent>
@@ -211,7 +208,7 @@ inline void Registry::RemoveComponent(Entity &entity) {
   auto const componentId = Component<TComponent>::GetId();
   auto const entityId = entity.GetId();
 
-  entityComponentSignatures[entityId].set(componentId, false);
+  m_entityComponentSignatures[entityId].set(componentId, false);
 };
 
 template<typename TComponent>
@@ -219,39 +216,40 @@ inline bool Registry::HasComponent(Entity &entity) const {
   auto const componentId = Component<TComponent>::GetId();
   auto const entityId = entity.GetId();
 
-  return entityComponentSignatures[entityId].test(componentId);
+  return m_entityComponentSignatures[entityId].test(componentId);
 };
 
 template<typename TComponent>
 TComponent& Registry::GetComponent(Entity &entity) const {
   const auto componentId = Component<TComponent>::GetId();
   const auto entityId = entity.GetId();
-  auto componentPool = std::static_pointer_cast<Pool<TComponent>>(componentPools[componentId]);
+  auto componentPool = std::static_pointer_cast<Pool<TComponent>>(m_componentPools[componentId]);
   return componentPool->Get(entityId);
 };
 
 template<typename TSystem, typename... TArgs>
 inline void Registry::AddSystem(TArgs&& ...args) {
-  systems[std::string(std::type_index(typeid(TSystem)).name())] =
+  m_systems[std::string(std::type_index(typeid(TSystem)).name())] =
     std::make_shared<TSystem>(TSystem(std::forward<TArgs>(args)...));
 };
 
 template<typename TSystem>
 inline void Registry::RemoveSystem(){
-  std::erase_if(systems, [](const auto& item) {
+  std::erase_if(
+    m_systems, [](const auto& item) {
       return item.first == std::string(std::type_index(typeid(TSystem)).name());
   });
 };
 
 template<typename TSystem>
 inline bool Registry::HasSystem() {
-  return systems.count(std::string(std::type_index(typeid(TSystem)).name()));
+  return m_systems.count(std::string(std::type_index(typeid(TSystem)).name()));
 };
 
 template<typename TSystem>
 inline TSystem& Registry::GetSystem() {
   std::string key(std::type_index(typeid(TSystem)).name());
-  return *std::static_pointer_cast<TSystem>(systems[key]);
+  return *std::static_pointer_cast<TSystem>(m_systems[key]);
 };
 
 template <typename TComponent, typename ...TArgs>

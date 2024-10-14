@@ -1,47 +1,46 @@
 #include "ECS.hpp"
 #include "Logger.hpp"
 
-unsigned int Entity::GetId() const { return id; }
+unsigned int Entity::GetId() const { return m_entityId; }
 
 void System::AddEntity(const Entity& entity) {
   Logger::Info("Added entityId " + std::to_string(entity.GetId()) + " to system");
-  entities.emplace_back(entity);
+  m_entities.emplace_back(entity);
 }
 
 void System::RemoveEntity(Entity &entity) {
     // C++20 way of removing elements from vector
     // no need for erase-remove idiom
-    std::erase_if(entities, [&entity](Entity& other) {
+    std::erase_if(m_entities, [&entity](Entity& other) {
         return other == entity;
     });
 }
 
 std::vector<Entity> System::GetEntities() const{
-    return entities;
+    return m_entities;
 }
 
 Signature const& System::GetComponentSignature() const {
-    return componentSignature;
+    return m_componentSignature;
 }
 
 Entity Registry::CreateEntity() {
-    auto entityId = numEntities++;
+    auto entityId = m_numEntities++;
     Entity entity(entityId);
     entity.registry = this;
-    entitiesToBeAdded.insert(entity);
+    m_entitiesToBeAdded.insert(entity);
 
-    if (entityId >= entityComponentSignatures.size()) {
-      entityComponentSignatures.resize(entityId + 1);
+    if (entityId >= m_entityComponentSignatures.size()) { m_entityComponentSignatures.resize(entityId + 1);
     }
     Logger::Info("Entity created : " + std::to_string(entityId));
     return entity;
 }
 
 void Registry::AddEntityToSystems(const Entity& entity) {
-  const auto& entityComponentSignature = entityComponentSignatures[entity.GetId()];
+  const auto& entityComponentSignature = m_entityComponentSignatures[entity.GetId()];
 
-    // Loop through all systems, add entity to the ones whose signature matches entityComponentSignature
-    for (const auto& system : systems) {
+    // Loop through all m_systems, add entity to the ones whose signature matches entityComponentSignature
+    for (const auto& system : m_systems) {
       const auto& systemComponentSignature = system.second->GetComponentSignature();
         if ((entityComponentSignature & systemComponentSignature) == systemComponentSignature) {
             system.second->AddEntity(entity);
@@ -50,8 +49,8 @@ void Registry::AddEntityToSystems(const Entity& entity) {
 }
 
 void Registry::Update() {
-    for(const auto& entity: entitiesToBeAdded) {
+    for(const auto& entity: m_entitiesToBeAdded) {
         AddEntityToSystems(entity);
     }
-    entitiesToBeAdded.clear();
+    m_entitiesToBeAdded.clear();
 }
